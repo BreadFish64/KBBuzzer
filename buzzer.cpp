@@ -107,7 +107,7 @@ void Buzzer::scanInput() {
         mode = Mode::QUESTION;
         newQuestion();
         button_state[0] = true;
-    } else if (digitalRead(4) == HIGH) {
+    } else if (digitalRead(2) == HIGH) {
         button_state[0] = false;
     }
 
@@ -123,7 +123,7 @@ void Buzzer::scanInput() {
             refreshStates();
         }
         button_state[1] = true;
-    } else if (digitalRead(4) == HIGH) {
+    } else if (digitalRead(3) == HIGH) {
         button_state[1] = false;
     }
 
