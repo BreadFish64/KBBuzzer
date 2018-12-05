@@ -8,10 +8,9 @@ public:
     Buzzer();
     ~Buzzer();
 
-    enum class Mode { QUESTION, EDIT_SCORE };
-    enum class TeamState { WAITING, IN, ANSWERING, OUT_OF_TIME, INCORRECT };
-
     void refresh();
+
+    enum class TeamState { WAITING, IN, ANSWERING, OUT_OF_TIME, INCORRECT };
 
     struct Team {
         uint8_t score = 0;
@@ -30,11 +29,12 @@ private:
     void refreshStates();
     void clear();
 
+    static constexpr uint8_t NOT_EDITING = 255;
+
     using funcPtr = void (Buzzer::*)();
     funcPtr buttonHandlers[4] = {&handleNewQuestion, &handleEdit, &handleYes, &handleNo};
 
-    Mode mode = Mode::QUESTION;
-    uint8_t editing = 0;
+    uint8_t editing = NOT_EDITING;
     Team teams[6];
     bool button_state[4] = {};
     TVout tv;

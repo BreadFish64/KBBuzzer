@@ -59,7 +59,7 @@ void Buzzer::refreshScores() {
 }
 
 void Buzzer::handleNewQuestion() {
-    mode = Mode::QUESTION;
+    editing = NOT_EDITING;
     clear();
 }
 
@@ -79,7 +79,7 @@ void Buzzer::refreshStates() {
     for (uint8_t i = 0; i < 6; ++i)
         tv.print_char(40, 8 * i, state_chars[static_cast<uint8_t>(teams[i].state)]);
 
-    if (mode == Mode::EDIT_SCORE) {
+    if (editing != NOT_EDITING) {
         tv.print(0, 61, "Editing");
     } else if (current_team == nullptr) {
         tv.print(0, 61, "Reading");
@@ -92,7 +92,7 @@ void Buzzer::refreshStates() {
 
 void Buzzer::scanInput() {
     // Strips
-    if (mode == Mode::QUESTION) {
+    if (editing == NOT_EDITING) {
         for (uint8_t i = 0; i < 6; ++i) {
             Team& team = teams[i];
             if (digitalRead(A0 + i) == LOW && team.state == TeamState::WAITING) {
@@ -116,8 +116,8 @@ void Buzzer::scanInput() {
 }
 
 void Buzzer::handleEdit() {
-    if (mode == Mode::QUESTION) {
-        mode = Mode::EDIT_SCORE;
+    if (editing == NOT_EDITING) {
+        editing = 0;
         clear();
         teams[editing].state = TeamState::ANSWERING;
         refreshStates();
@@ -133,7 +133,7 @@ void Buzzer::handleYes() {
     if (current_team != nullptr) {
         ++current_team->score;
         clear();
-    } else if (mode == Mode::EDIT_SCORE) {
+    } else if (editing != NOT_EDITING) {
         ++teams[editing].score;
         refreshScores();
     }
@@ -152,7 +152,7 @@ void Buzzer::handleNo() {
         time = 0;
         tv.print(71, 0, "  ");
         refreshStates();
-    } else if (mode == Mode::EDIT_SCORE && teams[editing].score != 0) {
+    } else if (editing != NOT_EDITING && teams[editing].score != 0) {
         --teams[editing].score;
         refreshScores();
     }
