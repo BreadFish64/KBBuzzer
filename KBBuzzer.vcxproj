@@ -108,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="buzzer.h" />
+    <ClInclude Include="ring_queue.h" />
     <ClInclude Include="__vm\.KBBuzzer.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>

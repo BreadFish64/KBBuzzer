@@ -24,6 +24,9 @@
     <ClInclude Include="buzzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ring_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="buzzer.cpp">

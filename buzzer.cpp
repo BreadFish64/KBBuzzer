@@ -28,7 +28,7 @@ void Buzzer::refresh() {
 
 void Buzzer::checkTeam() {
     if (current_team == nullptr) {
-        queueGet();
+        current_team = team_queue.get();
         if (current_team != nullptr) {
             time = tv.millis();
             current_team->state = TeamState::ANSWERING;
@@ -63,7 +63,7 @@ void Buzzer::refreshScores() {
 
 void Buzzer::newQuestion() {
     current_team = nullptr;
-    queueReset();
+    team_queue.reset();
     for (auto& team : teams)
         team.state = TeamState::WAITING;
     time = 0;
@@ -95,7 +95,7 @@ void Buzzer::scanInput() {
         for (uint8_t i = 0; i < 6; ++i) {
             Team& team = teams[i];
             if (digitalRead(strips[i]) == LOW && team.state == TeamState::WAITING) {
-                queuePut(&team);
+                team_queue.put(&team);
                 team.state = TeamState::IN;
                 refreshStates();
                 tv.tone(2500, 100);
@@ -167,30 +167,6 @@ some_left:
     time = 0;
     tv.print(71, 0, "  ");
     refreshStates();
-}
-
-inline void Buzzer::queuePut(Team* new_item) {
-    team_queue[queue_in] = new_item;
-    queue_in = (queue_in + 1) % 6;
-}
-
-inline void Buzzer::queueGet() {
-    if (queue_in == queue_out) {
-        current_team == nullptr;
-        return;
-    }
-
-    auto& old = team_queue[queue_out];
-    queue_out = (queue_out + 1) % 6;
-
-    current_team = old;
-}
-
-void Buzzer::queueReset() {
-    for (auto& item : team_queue)
-        item = nullptr;
-    queue_in = 0;
-    queue_out = 0;
 }
 
 Buzzer::Team::Team(){};

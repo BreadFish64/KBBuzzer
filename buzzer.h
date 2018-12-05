@@ -1,6 +1,8 @@
 #pragma once
 #include <TVout.h>
 
+#include "ring_queue.h"
+
 class Buzzer {
 public:
     Buzzer();
@@ -24,9 +26,6 @@ public:
 private:
     void scanInput();
     void incorrect();
-    void queuePut(Team* new_item);
-    void queueGet();
-    void queueReset();
     void checkTeam();
     void refreshTimer();
     void refreshScores();
@@ -41,7 +40,7 @@ private:
     bool button_state[4] = {};
     TVout tv;
     bool answering = false;
-    Team* team_queue[6];
+    RingQueue<Team*, 6> team_queue;
     Team* current_team = nullptr;
     uint8_t queue_in = 0, queue_out = 0;
     unsigned long time = 0xDEADBEEF, time_diff = 0xDEADBEEF;
