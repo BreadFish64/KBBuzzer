@@ -20,14 +20,18 @@ public:
 
 private:
     void scanInput();
-    void incorrect();
+    void handleNewQuestion();
+    void handleEdit();
+    void handleYes();
+    void handleNo();
     void checkTeam();
     void refreshTimer();
     void refreshScores();
-    void newQuestion();
     void refreshStates();
+    void clear();
 
-    static const uint8_t strips[6];
+    using funcPtr = void (Buzzer::*)();
+    funcPtr buttonHandlers[4] = {&handleNewQuestion, &handleEdit, &handleYes, &handleNo};
 
     Mode mode = Mode::QUESTION;
     uint8_t editing = 0;

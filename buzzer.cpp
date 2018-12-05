@@ -58,15 +58,20 @@ void Buzzer::refreshScores() {
     }
 }
 
-void Buzzer::newQuestion() {
+void Buzzer::handleNewQuestion() {
+    mode = Mode::QUESTION;
+    clear();
+}
+
+void Buzzer::clear() {
     current_team = nullptr;
     team_queue.reset();
     for (auto& team : teams)
         team.state = TeamState::WAITING;
     time = 0;
     tv.print(71, 0, "  ");
-    refreshScores();
     refreshStates();
+    refreshScores();
 }
 
 void Buzzer::refreshStates() {
@@ -87,84 +92,68 @@ void Buzzer::refreshStates() {
 
 void Buzzer::scanInput() {
     // Strips
-    if (mode == Mode::QUESTION)
+    if (mode == Mode::QUESTION) {
         for (uint8_t i = 0; i < 6; ++i) {
             Team& team = teams[i];
-            if (digitalRead(strips[i]) == LOW && team.state == TeamState::WAITING) {
+            if (digitalRead(A0 + i) == LOW && team.state == TeamState::WAITING) {
                 team_queue.put(&team);
                 team.state = TeamState::IN;
                 refreshStates();
                 tv.tone(2500, 100);
             }
         }
-
-    // New Question
-    if (digitalRead(2) == LOW && button_state[0] == false) {
-        mode = Mode::QUESTION;
-        newQuestion();
-        button_state[0] = true;
-    } else if (digitalRead(2) == HIGH) {
-        button_state[0] = false;
     }
 
-    // Edit Score
-    if (digitalRead(3) == LOW && button_state[1] == false) {
-        if (mode == Mode::QUESTION) {
-            mode = Mode::EDIT_SCORE;
-            newQuestion();
-        } else {
-            newQuestion();
-            editing = (editing + 1) % 6;
-            teams[editing].state = TeamState::ANSWERING;
-            refreshStates();
+    // Buttons
+    for (uint8_t i = 0; i < 4; ++i) {
+        if (digitalRead(i + 2) == LOW && button_state[i] == false) {
+            (this->*buttonHandlers[i])();
+            button_state[i] = true;
+        } else if (digitalRead(i + 2) == HIGH) {
+            button_state[i] = false;
         }
-        button_state[1] = true;
-    } else if (digitalRead(3) == HIGH) {
-        button_state[1] = false;
-    }
-
-    // Yes
-    if (digitalRead(4) == LOW && button_state[2] == false) {
-        if (current_team != nullptr) {
-            ++current_team->score;
-            newQuestion();
-        } else if (mode == Mode::EDIT_SCORE) {
-            ++teams[editing].score;
-            refreshScores();
-        }
-        button_state[2] = true;
-    } else if (digitalRead(4) == HIGH) {
-        button_state[2] = false;
-    }
-
-    // No
-    if (digitalRead(5) == LOW && button_state[3] == false) {
-        if (current_team != nullptr) {
-            incorrect();
-        } else if (mode == Mode::EDIT_SCORE && teams[editing].score != 0) {
-            --teams[editing].score;
-            refreshScores();
-        }
-        button_state[3] = true;
-    } else if (digitalRead(5) == HIGH) {
-        button_state[3] = false;
     }
 }
 
-void Buzzer::incorrect() {
-    current_team->state = TeamState::INCORRECT;
-    for (const auto& team : teams) {
-        if (team.state != TeamState::INCORRECT)
-            goto some_left;
+void Buzzer::handleEdit() {
+    if (mode == Mode::QUESTION) {
+        mode = Mode::EDIT_SCORE;
+        clear();
+        teams[editing].state = TeamState::ANSWERING;
+        refreshStates();
+    } else {
+        teams[editing].state = TeamState::WAITING;
+        editing = (editing + 1) % 6;
+        teams[editing].state = TeamState::ANSWERING;
+        refreshStates();
     }
-    newQuestion();
-some_left:
-    current_team = nullptr;
-    time = 0;
-    tv.print(71, 0, "  ");
-    refreshStates();
 }
 
-const uint8_t Buzzer::strips[] = {
-    A0, A1, A2, A3, A4, A5,
-};
+void Buzzer::handleYes() {
+    if (current_team != nullptr) {
+        ++current_team->score;
+        clear();
+    } else if (mode == Mode::EDIT_SCORE) {
+        ++teams[editing].score;
+        refreshScores();
+    }
+}
+
+void Buzzer::handleNo() {
+    if (current_team != nullptr) {
+        current_team->state = TeamState::INCORRECT;
+        for (const auto& team : teams) {
+            if (team.state != TeamState::INCORRECT)
+                goto some_left;
+        }
+        clear();
+    some_left:
+        current_team = nullptr;
+        time = 0;
+        tv.print(71, 0, "  ");
+        refreshStates();
+    } else if (mode == Mode::EDIT_SCORE && teams[editing].score != 0) {
+        --teams[editing].score;
+        refreshScores();
+    }
+}
