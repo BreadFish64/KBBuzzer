@@ -6,9 +6,6 @@
 #include "buzzer.h"
 
 Buzzer::Buzzer() {
-    for (char i = 0; i <= 6; ++i)
-        teams[i] = Team('A' + i);
-
     tv.begin(NTSC, 88, 70);
     tv.clear_screen();
     tv.select_font(font8x8);
@@ -57,7 +54,7 @@ void Buzzer::refreshTimer() {
 void Buzzer::refreshScores() {
     for (uint8_t i = 0; i < 6; ++i) {
         tv.print(12, 8 * i, "   ");
-        tv.print(12, 8 * i, teams[i].score);
+        tv.print(12, 8 * i, static_cast<unsigned int>(teams[i].score));
     }
 }
 
@@ -74,9 +71,8 @@ void Buzzer::newQuestion() {
 
 void Buzzer::refreshStates() {
     constexpr char state_chars[] = " -<*X";
-    for (uint8_t i = 0; i < 6; ++i) {
+    for (uint8_t i = 0; i < 6; ++i)
         tv.print_char(40, 8 * i, state_chars[static_cast<uint8_t>(teams[i].state)]);
-    }
 
     if (mode == Mode::EDIT_SCORE) {
         tv.print(0, 61, "Editing");
@@ -168,12 +164,6 @@ some_left:
     tv.print(71, 0, "  ");
     refreshStates();
 }
-
-Buzzer::Team::Team(){};
-
-Buzzer::Team::Team(uint8_t name) : name(name) {}
-
-Buzzer::Team::~Team() {}
 
 const uint8_t Buzzer::strips[] = {
     A0, A1, A2, A3, A4, A5,

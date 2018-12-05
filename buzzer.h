@@ -14,12 +14,7 @@ public:
     void refresh();
 
     struct Team {
-        Team();
-        Team(uint8_t name);
-        ~Team();
-
-        char name;
-        uint16_t score = 0;
+        uint8_t score = 0;
         TeamState state = TeamState::WAITING;
     };
 
